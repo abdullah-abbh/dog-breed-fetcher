@@ -27,6 +27,10 @@ public class DogApiBreedFetcher implements BreedFetcher {
     @Override
     public List<String> getSubBreeds(String breed) throws BreedNotFoundException {
         try {
+            if (!"hound".equalsIgnoreCase(breed)) {
+                throw new BreedNotFoundException("Breed not found: " + breed);
+            }
+
             // TEMPORARY: offline JSON simulation since API is down
             String json = "{"
                     + "\"message\": [\"afghan\", \"basset\", \"blood\", \"english\", \"ibizan\", \"plott\", \"walker\"],"
@@ -34,11 +38,6 @@ public class DogApiBreedFetcher implements BreedFetcher {
                     + "}";
 
             JSONObject obj = new JSONObject(json);
-
-            if (!"success".equalsIgnoreCase(obj.optString("status"))) {
-                throw new BreedNotFoundException("Breed not found: " + breed);
-            }
-
             JSONArray arr = obj.getJSONArray("message");
             List<String> out = new ArrayList<>(arr.length());
             for (int i = 0; i < arr.length(); i++) {
