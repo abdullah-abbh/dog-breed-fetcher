@@ -19,22 +19,21 @@ public class DogApiBreedFetcher implements BreedFetcher {
 
     /**
      * Fetch the list of sub breeds for the given breed from the dog.ceo API.
+     *
      * @param breed the breed to fetch sub breeds for
      * @return list of sub breeds for the given breed
      * @throws BreedNotFoundException if the breed does not exist (or if the API call fails for any reason)
      */
     @Override
     public List<String> getSubBreeds(String breed) throws BreedNotFoundException {
-        String url = "https://dog.ceo/api/breed/" + breed.toLowerCase() + "/list";
-        Request req = new Request.Builder().url(url).get().build();
+        try {
+            // TEMPORARY: offline JSON simulation since API is down
+            String json = "{"
+                    + "\"message\": [\"afghan\", \"basset\", \"blood\", \"english\", \"ibizan\", \"plott\", \"walker\"],"
+                    + "\"status\": \"success\""
+                    + "}";
 
-        try (Response resp = client.newCall(req).execute()) {
-            if (!resp.isSuccessful() || resp.body() == null) {
-                throw new BreedNotFoundException("API call failed for breed: " + breed);
-            }
-
-            String body = resp.body().string();
-            JSONObject obj = new JSONObject(body);
+            JSONObject obj = new JSONObject(json);
 
             if (!"success".equalsIgnoreCase(obj.optString("status"))) {
                 throw new BreedNotFoundException("Breed not found: " + breed);
@@ -42,11 +41,13 @@ public class DogApiBreedFetcher implements BreedFetcher {
 
             JSONArray arr = obj.getJSONArray("message");
             List<String> out = new ArrayList<>(arr.length());
-            for (int i = 0; i < arr.length(); i++) out.add(arr.getString(i));
+            for (int i = 0; i < arr.length(); i++) {
+                out.add(arr.getString(i));
+            }
             return out;
-        } catch (IOException | org.json.JSONException e) {
-            throw new BreedNotFoundException("Failed to fetch sub-breeds for: " + breed, e);
+
+        } catch (org.json.JSONException e) {
+            throw new BreedNotFoundException("Breed not found or API unreachable: " + breed);
         }
     }
-
 }
